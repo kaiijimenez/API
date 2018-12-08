@@ -5,7 +5,7 @@
 package routers
 
 import (
-	"WeatherAPI/weatherAPI/controllers"
+	"API/weatherAPI/controllers"
 
 	"github.com/astaxie/beego"
 )

@@ -7,7 +7,7 @@ import (
 
 func init() {
 
-    beego.GlobalControllerRouter["WeatherAPI/weatherAPI/controllers:WeatherController"] = append(beego.GlobalControllerRouter["WeatherAPI/weatherAPI/controllers:WeatherController"],
+    beego.GlobalControllerRouter["API/weatherAPI/controllers:WeatherController"] = append(beego.GlobalControllerRouter["API/weatherAPI/controllers:WeatherController"],
         beego.ControllerComments{
             Method: "Get",
             Router: `/r`,

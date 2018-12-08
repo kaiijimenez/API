@@ -1,7 +1,7 @@
 package main
 
 import (
-	_ "WeatherAPI/weatherAPI/routers"
+	_ "API/weatherAPI/routers"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"

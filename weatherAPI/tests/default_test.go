@@ -1,14 +1,14 @@
 package test
 
 import (
-	_ "WeatherAPI/weatherAPI/routers"
+	_ "API/weatherAPI/routers"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"path/filepath"
 	"runtime"
 	"testing"
-
-	"github.com/astaxie/beego/logs"
 
 	"github.com/astaxie/beego"
 	. "github.com/smartystreets/goconvey/convey"
@@ -22,7 +22,8 @@ func init() {
 
 // TestGet is a sample to run an endpoint test
 func TestWeatherApi(t *testing.T) {
-	r, _ := http.NewRequest("GET", "/v1/weather/?city=Bogota&country=co", nil)
+	r, _ := http.NewRequest("GET", "/v1/weather/r?city=Mexico&country=mx", nil)
+	w := httptest.NewRecorder()
 	beego.BeeApp.Handlers.ServeHTTP(w, r)
 
 	//beego.Trace("testing", "TestGet", "Code[%d]\n%s", w.Code, w.Body.String())
@@ -30,7 +31,7 @@ func TestWeatherApi(t *testing.T) {
 	var jsonResponse map[string]interface{}
 
 	err := json.Unmarshal([]byte(w.Body.String()), &jsonResponse)
-	logs.Critical(err)
+	fmt.Println(jsonResponse)
 
 	Convey("Test Getting Response from Weather Endpoint", t, func() {
 		Convey("Status should be 200", func() {

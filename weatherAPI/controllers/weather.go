@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"bootcamp-go/weatherAPI/weather"
+	"API/weatherAPI/libraries"
 
 	"github.com/astaxie/beego/logs"
 
@@ -26,7 +26,7 @@ func (wc *WeatherController) Get() {
 	country := wc.GetString("country")
 
 	logs.Info("Getting the response from the endpoint")
-	response := weather.GetResponse(city, country)
+	response := libraries.GetResponse(city, country)
 	wc.Data["json"] = response
 	wc.ServeJSON()
 }

@@ -42,7 +42,7 @@ func GetResponse(city, country string) map[string]interface{} {
 
 	response["cloudiness"] = fmt.Sprintf("%s", cloudiness(clouds["all"].(float64)))
 
-	response["presure"] = fmt.Sprintf("%.0f hpa", main["pressure"])
+	response["pressure"] = fmt.Sprintf("%.0f hpa", main["pressure"])
 
 	response["humidity"] = fmt.Sprintf("%.0f%%", main["humidity"])
 
