@@ -57,13 +57,12 @@ type SysStruct struct {
 func GetResponse(city, country string) map[string]interface{} {
 	response := make(map[string]interface{})
 	var jresponse JsonResponse
-	var countrie RestCountries
 
 	// checks whether the city or the country are empty or if the Country/City are not compatible
 	if city == "" || country == "" {
 		logs.Critical("City or country not found or empty")
-		r["code"] = 404
-		r["message"] = "City or country not found or empty!"
+		response["code"] = 404
+		response["message"] = "City or country not found or empty!"
 		return response
 	}
 
