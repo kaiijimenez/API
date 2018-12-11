@@ -3,58 +3,95 @@ package libraries
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
+
+	"github.com/astaxie/beego"
 
 	"github.com/astaxie/beego/httplib"
 	"github.com/astaxie/beego/logs"
 )
 
-func GetResponse(city, country string) map[string]interface{} {
-	var jsonResponse map[string]interface{}
-	response := make(map[string]interface{})
+var (
+	burl  = beego.AppConfig.String("base_url")
+	appid = beego.AppConfig.String("appid")
+	codes = beego.AppConfig.String("codes")
+)
 
-	uri := fmt.Sprintf("http://api.openweathermap.org/data/2.5/weather?q=%v,%v&appid=1508a9a4840a5574c822d70ca2132032", city, country)
+type JsonResponse struct {
+	Coord   CoordStruct     `json:"coord"`
+	Weather []WeatherStruct `json:"weather"`
+	Main    MainStruct      `json:"main"`
+	Wind    WindStruct      `json:"wind"`
+	Sys     SysStruct       `json:"sys"`
+	Rtime   int64           `json:"dt"`
+	Name    string          `json:"name"`
+}
+
+type CoordStruct struct {
+	Lon float64 `json:"lon"`
+	Lat float64 `json:"lat"`
+}
+
+type WeatherStruct struct {
+	Description string `json:"description"`
+}
+
+type MainStruct struct {
+	Temperature float64 `json:"temp"`
+	Pressure    float64 `json:"pressure"`
+	Humidity    float64 `json:"humidity"`
+}
+
+type WindStruct struct {
+	Speed    float64 `json:"speed"`
+	Degrates float64 `json:"deg"`
+}
+
+type SysStruct struct {
+	Country string `json:"country"`
+	Sunrise int64  `json:"sunrise"`
+	Sunset  int64  `json:"sunset"`
+}
+
+func GetResponse(city, country string) map[string]interface{} {
+	response := make(map[string]interface{})
+	var jresponse JsonResponse
+	var countrie RestCountries
+
+	// checks whether the city or the country are empty or if the Country/City are not compatible
+	if city == "" || country == "" {
+		logs.Critical("City or country not found or empty")
+		r["code"] = 404
+		r["message"] = "City or country not found or empty!"
+		return response
+	}
+
+	weather := fmt.Sprintf("weather?q=%v,%v", city, country)
+	uri := fmt.Sprintf("%v%v&appid=%v", burl, weather, appid)
 	res := httplib.Get(uri) //get the uri sending
-	res.Debug(true)
-	str, e := res.String() //return raw response body
+	str, e := res.String()  //return raw response body
 	CheckErrors("Error returning the raw response: ", e)
-	err := json.Unmarshal([]byte(str), &jsonResponse)
+	err := json.Unmarshal([]byte(str), &jresponse)
 	CheckErrors("Error trying to unmarshal the data: ", err)
 
-	//getting the json data
-	coord := jsonResponse["coord"].(map[string]interface{})
-	wind := jsonResponse["wind"].(map[string]interface{})
-	main := jsonResponse["main"].(map[string]interface{})
-	sys := jsonResponse["sys"].(map[string]interface{})
-	clouds := jsonResponse["clouds"].(map[string]interface{})
 	//getting time
-	sunrise := time.Unix(int64(sys["sunrise"].(float64)), 0)
-	sunset := time.Unix(int64(sys["sunset"].(float64)), 0)
-	timer := time.Unix(int64(jsonResponse["dt"].(float64)), 0)
+	sunrise := time.Unix(jresponse.Sys.Sunrise, 0)
+	sunset := time.Unix(jresponse.Sys.Sunset, 0)
+	rtime := time.Unix(jresponse.Rtime, 0)
 	//getting wind values
-	b, w, wd := beaufort(wind["speed"].(float64)), wind["speed"].(float64), windir(wind["deg"].(float64))
+	b, w, wd := beaufort(jresponse.Wind.Speed), jresponse.Wind.Speed, windir(jresponse.Wind.Degrates)
 
-	response["location_name"] = fmt.Sprintf("%s, %s", jsonResponse["name"], sys["country"])
-
-	response["temperature"] = fmt.Sprintf("%.0f °C", main["temp"].(float64)-273.15)
-
+	response["location_name"] = fmt.Sprintf("%v, %v", city, strings.ToUpper(country))
+	response["temperature"] = getTemperature(jresponse.Main.Temperature)
 	response["wind"] = fmt.Sprintf("%s, %.2f m/s, %s", b, w, wd)
-
-	response["cloudiness"] = fmt.Sprintf("%s", cloudiness(clouds["all"].(float64)))
-
-	response["pressure"] = fmt.Sprintf("%.0f hpa", main["pressure"])
-
-	response["humidity"] = fmt.Sprintf("%.0f%%", main["humidity"])
-
+	response["cloudiness"] = fmt.Sprintf("%s", jresponse.Weather[0].Description)
+	response["pressure"] = fmt.Sprintf("%.0f hpa", jresponse.Main.Pressure)
+	response["humidity"] = fmt.Sprintf("%.0f%%", jresponse.Main.Humidity)
 	response["sunrise"] = fmt.Sprintf("%02d:%02d", sunrise.Hour(), sunrise.Minute())
-
 	response["sunset"] = fmt.Sprintf("%02d:%02d", sunset.Hour(), sunset.Minute())
-
-	response["geo_coordinates"] = []float64{coord["lon"].(float64), coord["lat"].(float64)}
-
-	response["requested_time"] = fmt.Sprintf(
-		"%v",
-		time.Date(timer.Year(), timer.Month(), timer.Day(), timer.Hour(), timer.Minute(), timer.Second(), timer.Nanosecond(), timer.Location()))
+	response["geo_coordinates"] = fmt.Sprintf("%v", []float64{jresponse.Coord.Lat, jresponse.Coord.Lon})
+	response["requested_time"] = fmt.Sprintf("%v", rtime)
 	return response
 }
 
@@ -136,17 +173,14 @@ func windir(deg float64) string {
 	return d
 }
 
-//cloudiness
-func cloudiness(all float64) string {
-	var c string
-	if 0.0 <= all && all <= 25.0 {
-		c = "Clear Skies"
-	} else if 26.0 <= all && all <= 75.0 {
-		c = "Scattered Clouds"
-	} else if 76.0 <= all && all <= 99.0 {
-		c = "Broken Clouds"
-	} else if all == 100.0 {
-		c = "Overcast"
-	}
-	return c
+var getTemperature = func(kelvin float64) string {
+	return fmt.Sprintf("%.0f °C", kelvin-273.15)
+}
+
+var ErrorResponse = func(e, message string, code int) map[string]interface{} {
+	logs.Critical(e)
+	r := make(map[string]interface{})
+	r["code"] = code
+	r["message"] = message
+	return r
 }

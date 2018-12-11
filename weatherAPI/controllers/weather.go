@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"API/weatherAPI/libraries"
+	"API-weather/weatherAPI/libraries"
 
 	"github.com/astaxie/beego/logs"
 
@@ -14,8 +14,8 @@ type WeatherController struct {
 
 //@Title Get Json Response
 //@Description Get the Response from the endpoint of weather api
-//@Param city query string true "name of the City Example: Bogota"
-//@Param country query string true "Country is a country code of two characters in lowercase. Example: co"
+//@Param city query string false "name of the City Example: Bogota"
+//@Param country query string false "Country is a country code of two characters in lowercase. Example: co"
 //@Success 200 {object} "Success"
 //@Failure 400 Bad Request
 //@Failure 400 Not Found
@@ -29,4 +29,5 @@ func (wc *WeatherController) Get() {
 	response := libraries.GetResponse(city, country)
 	wc.Data["json"] = response
 	wc.ServeJSON()
+
 }

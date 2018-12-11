@@ -27,14 +27,12 @@
                         "in": "query",
                         "name": "city",
                         "description": "name of the City Example: Bogota",
-                        "required": true,
                         "type": "string"
                     },
                     {
                         "in": "query",
                         "name": "country",
                         "description": "Country is a country code of two characters in lowercase. Example: co",
-                        "required": true,
                         "type": "string"
                     }
                 ],
