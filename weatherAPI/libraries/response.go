@@ -12,12 +12,6 @@ import (
 	"github.com/astaxie/beego/logs"
 )
 
-var (
-	burl  = beego.AppConfig.String("base_url")
-	appid = beego.AppConfig.String("appid")
-	codes = beego.AppConfig.String("codes")
-)
-
 type JsonResponse struct {
 	Coord   CoordStruct     `json:"coord"`
 	Weather []WeatherStruct `json:"weather"`
@@ -54,23 +48,47 @@ type SysStruct struct {
 	Sunset  int64  `json:"sunset"`
 }
 
-func GetResponse(city, country string) map[string]interface{} {
-	response := make(map[string]interface{})
+type Response struct {
+	Location_name   string
+	Temperature     string
+	Wind            string
+	Cloudiness      string
+	Pressure        string
+	Humidity        string
+	Sunrise         string
+	Sunset          string
+	Geo_coordinates string
+	Requested_time  string
+}
+
+type ErrorResponse struct {
+	Code    string
+	Message string
+}
+
+func GetResponse(city, country string) interface{} {
+	var response Response
+	var eresponse ErrorResponse
 	var jresponse JsonResponse
+	weather := GetConfig("weather")
+	base := GetConfig("base_url")
+	appid := GetConfig("appid")
 
 	// checks whether the city or the country are empty or if the Country/City are not compatible
 	if city == "" || country == "" {
 		logs.Critical("City or country not found or empty")
-		response["code"] = 404
-		response["message"] = "City or country not found or empty!"
-		return response
+		eresponse.Code = "404"
+		eresponse.Message = "City or country not found or empty!"
+		return eresponse
 	}
-
-	weather := fmt.Sprintf("weather?q=%v,%v", city, country)
-	uri := fmt.Sprintf("%v%v&appid=%v", burl, weather, appid)
+	we := fmt.Sprintf(weather, city, country)
+	uri := fmt.Sprintf("%s%s%s", base, we, appid)
+	fmt.Println(base)
+	fmt.Println(uri)
+	//uri := fmt.Sprintf("http://api.openweathermap.org/data/2.5/weather?q=%v,%v&appid=1508a9a4840a5574c822d70ca2132032", city, country)
 	res := httplib.Get(uri) //get the uri sending
 	str, e := res.String()  //return raw response body
-	CheckErrors("Error returning the raw response: ", e)
+	CheckErrors("Error in the raw response: ", e)
 	err := json.Unmarshal([]byte(str), &jresponse)
 	CheckErrors("Error trying to unmarshal the data: ", err)
 
@@ -81,22 +99,22 @@ func GetResponse(city, country string) map[string]interface{} {
 	//getting wind values
 	b, w, wd := beaufort(jresponse.Wind.Speed), jresponse.Wind.Speed, windir(jresponse.Wind.Degrates)
 
-	response["location_name"] = fmt.Sprintf("%v, %v", city, strings.ToUpper(country))
-	response["temperature"] = getTemperature(jresponse.Main.Temperature)
-	response["wind"] = fmt.Sprintf("%s, %.2f m/s, %s", b, w, wd)
-	response["cloudiness"] = fmt.Sprintf("%s", jresponse.Weather[0].Description)
-	response["pressure"] = fmt.Sprintf("%.0f hpa", jresponse.Main.Pressure)
-	response["humidity"] = fmt.Sprintf("%.0f%%", jresponse.Main.Humidity)
-	response["sunrise"] = fmt.Sprintf("%02d:%02d", sunrise.Hour(), sunrise.Minute())
-	response["sunset"] = fmt.Sprintf("%02d:%02d", sunset.Hour(), sunset.Minute())
-	response["geo_coordinates"] = fmt.Sprintf("%v", []float64{jresponse.Coord.Lat, jresponse.Coord.Lon})
-	response["requested_time"] = fmt.Sprintf("%v", rtime)
+	response.Location_name = fmt.Sprintf("%v, %v", city, strings.ToUpper(country))
+	response.Temperature = getTemperature(jresponse.Main.Temperature)
+	response.Wind = fmt.Sprintf("%s, %.2f m/s, %s", b, w, wd)
+	response.Cloudiness = fmt.Sprintf("%s", jresponse.Weather[0].Description)
+	response.Pressure = fmt.Sprintf("%.0f hpa", jresponse.Main.Pressure)
+	response.Humidity = fmt.Sprintf("%.0f%%", jresponse.Main.Humidity)
+	response.Sunrise = fmt.Sprintf("%02d:%02d", sunrise.Hour(), sunrise.Minute())
+	response.Sunset = fmt.Sprintf("%02d:%02d", sunset.Hour(), sunset.Minute())
+	response.Geo_coordinates = fmt.Sprintf("%v", []float64{jresponse.Coord.Lat, jresponse.Coord.Lon})
+	response.Requested_time = fmt.Sprintf("%v", rtime)
 	return response
 }
 
 func CheckErrors(s string, e error) {
 	if e != nil {
-		logs.Error(s, e)
+		logs.Critical(s, e)
 	}
 }
 
@@ -176,10 +194,6 @@ var getTemperature = func(kelvin float64) string {
 	return fmt.Sprintf("%.0f °C", kelvin-273.15)
 }
 
-var ErrorResponse = func(e, message string, code int) map[string]interface{} {
-	logs.Critical(e)
-	r := make(map[string]interface{})
-	r["code"] = code
-	r["message"] = message
-	return r
+func GetConfig(s string) string {
+	return beego.AppConfig.String(s)
 }
