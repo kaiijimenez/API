@@ -1,8 +1,8 @@
-*/vendor/*
-/lastupdate.tmp
-/*.exe
-/routers/commentsRouter__*
-/.idea
-/data
-/.zip
-/.rar
+/vendor/*
+lastupdate.tmp
+*.exe
+routers/commentsRouter__*
+.idea
+data
+.zip
+.rar
