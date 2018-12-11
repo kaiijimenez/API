@@ -1,5 +1,5 @@
 /vendor/*
-lastupdate.tmp
+*.tmp
 *.exe
 routers/commentsRouter__*
 .idea
