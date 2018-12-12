@@ -66,29 +66,39 @@ type ErrorResponse struct {
 	Message string
 }
 
+type NotFoundRespose struct {
+	Code    string `json:"cod"`
+	Message string `json:"message"`
+}
+
 func GetResponse(city, country string) interface{} {
 	var response Response
-	var eresponse ErrorResponse
 	var jresponse JsonResponse
+	var notfound NotFoundRespose
+
+	//conf variables
 	weather := GetConfig("weather")
 	base := GetConfig("base_url")
 	appid := GetConfig("appid")
 
-	// checks whether the city or the country are empty or if the Country/City are not compatible
-	if city == "" || country == "" {
-		logs.Critical("City or country not found or empty")
-		eresponse.Code = "404"
-		eresponse.Message = "City or country not found or empty!"
-		return eresponse
-	}
+	//endpoint api
 	we := fmt.Sprintf(weather, city, country)
 	uri := fmt.Sprintf("%s%s%s", base, we, appid)
-	fmt.Println(base)
-	fmt.Println(uri)
-	//uri := fmt.Sprintf("http://api.openweathermap.org/data/2.5/weather?q=%v,%v&appid=1508a9a4840a5574c822d70ca2132032", city, country)
-	res := httplib.Get(uri) //get the uri sending
-	str, e := res.String()  //return raw response body
+
+	//getting uri
+	res := httplib.Get(uri)
+	str, e := res.String()
 	CheckErrors("Error in the raw response: ", e)
+
+	//verifies whether if the city or the country are not send and if city doesn't match the country
+	// and returns an errorResponse
+	er := json.Unmarshal([]byte(str), &notfound)
+	if notfound.Code != "" {
+		CheckErrors("Error trying to unmarshal the data: ", er)
+		return EResponse()
+	}
+
+	//if the response is success then can continue with the code
 	err := json.Unmarshal([]byte(str), &jresponse)
 	CheckErrors("Error trying to unmarshal the data: ", err)
 
@@ -99,6 +109,7 @@ func GetResponse(city, country string) interface{} {
 	//getting wind values
 	b, w, wd := beaufort(jresponse.Wind.Speed), jresponse.Wind.Speed, windir(jresponse.Wind.Degrates)
 
+	//getting the response with human redable data
 	response.Location_name = fmt.Sprintf("%v, %v", city, strings.ToUpper(country))
 	response.Temperature = getTemperature(jresponse.Main.Temperature)
 	response.Wind = fmt.Sprintf("%s, %.2f m/s, %s", b, w, wd)
@@ -116,6 +127,14 @@ func CheckErrors(s string, e error) {
 	if e != nil {
 		logs.Critical(s, e)
 	}
+}
+
+func EResponse() ErrorResponse {
+	var eresponse ErrorResponse
+	logs.Critical("City or country not found or empty")
+	eresponse.Code = "404"
+	eresponse.Message = "City not found"
+	return eresponse
 }
 
 //Gets wind speed

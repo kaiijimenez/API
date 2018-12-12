@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"API-weather/libraries"
+	"github.com/kaiijimenez/API/libraries"
 
 	"github.com/astaxie/beego/logs"
 
