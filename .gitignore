@@ -1,0 +1,9 @@
+/vendor/*
+*.tmp
+*.exe
+routers/commentsRouter__*
+.idea
+data
+.zip
+.rar
+API

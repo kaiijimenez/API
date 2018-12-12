@@ -1,0 +1,39 @@
+swagger: "2.0"
+info:
+  title: WeatherAPI
+  version: 1.0.0
+  contact:
+    email: karina.jimenez@globant.com
+basePath: /v1
+paths:
+  /weather/r:
+    get:
+      tags:
+      - weather
+      description: Get the Response from the endpoint of weather api
+      operationId: WeatherController.Get Json Response
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: query
+        name: city
+        description: 'name of the City Example: Bogota'
+        type: string
+      - in: query
+        name: country
+        description: 'Country is a country code of two characters in lowercase. Example:
+          co'
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/"Success"'
+        "400":
+          description: Not Found
+definitions:
+  '"Success"':
+    title: '"Success"'
+    type: object
