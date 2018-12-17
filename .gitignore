@@ -1,6 +1,7 @@
 /vendor/*
 *.tmp
 *.exe
+*.exe~
 routers/commentsRouter__*
 .idea
 data

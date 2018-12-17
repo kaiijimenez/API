@@ -1,0 +1,38 @@
+version: "3.7"
+
+services:
+  weatherapi:
+    image: weatherapi
+    container_name: weatherapi
+    ports:
+      - 8080:8080
+    restart: always
+    volumes:
+      - ./:/go/src/github.com/kaiijimenez/API
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=weatherapidb
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+      - MYSQL_PORT=3306
+      - MYSQL_HOST=weatherdb
+    links:
+      - weatherdb
+    depends_on:
+      - weatherdb
+    command: bee run -downdoc=true -gendoc=true
+    networks:
+      - default
+  weatherdb:
+    image: mysql:5.7
+    container_name: weatherdb
+    ports:
+      - 3306:3306
+    restart: always
+    volumes:
+      - ./data/db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=weatherapidb
+    networks:
+      - default

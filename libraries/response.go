@@ -6,10 +6,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/astaxie/beego/orm"
+
 	"github.com/astaxie/beego"
+	"github.com/kaiijimenez/API/models"
 
 	"github.com/astaxie/beego/httplib"
 	"github.com/astaxie/beego/logs"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type JsonResponse struct {
@@ -71,10 +75,14 @@ type NotFoundRespose struct {
 	Message string `json:"message"`
 }
 
+var (
+	response  Response
+	jresponse JsonResponse
+	notfound  NotFoundRespose
+)
+
 func GetResponse(city, country string) interface{} {
-	var response Response
-	var jresponse JsonResponse
-	var notfound NotFoundRespose
+	fmt.Println("Retrieving weather info")
 
 	//conf variables
 	weather := GetConfig("weather")
@@ -120,7 +128,16 @@ func GetResponse(city, country string) interface{} {
 	response.Sunset = fmt.Sprintf("%02d:%02d", sunset.Hour(), sunset.Minute())
 	response.Geo_coordinates = fmt.Sprintf("%v", []float64{jresponse.Coord.Lat, jresponse.Coord.Lon})
 	response.Requested_time = fmt.Sprintf("%v", rtime)
-	return response
+
+	//Inserting into DB returns the response retrieve from db (in case they exist) to return to client
+	//Return err in case there is an error trying to insert in the db
+	r, err := Inserting(response, jresponse, sunrise, sunset, rtime)
+	if r == nil && err == nil {
+		return response
+	} else if r == nil && err != nil {
+		return InsertError()
+	}
+	return r
 }
 
 func CheckErrors(s string, e error) {
@@ -134,6 +151,14 @@ func EResponse() ErrorResponse {
 	logs.Critical("City or country not found or empty")
 	eresponse.Code = "404"
 	eresponse.Message = "City not found"
+	return eresponse
+}
+
+func InsertError() ErrorResponse {
+	var eresponse ErrorResponse
+	logs.Critical("Error trying to insert in DB")
+	eresponse.Code = "500"
+	eresponse.Message = "Error trying to insert in DB"
 	return eresponse
 }
 
@@ -215,4 +240,67 @@ var getTemperature = func(kelvin float64) string {
 
 func GetConfig(s string) string {
 	return beego.AppConfig.String(s)
+}
+
+func Inserting(response Response, jresponse JsonResponse, sunrise, sunset, rtime time.Time) (interface{}, error) {
+	var tmsp = time.Now()
+	//Saving data
+	o := orm.NewOrm()
+	o.Using("default")
+
+	db := new(models.Weather)
+	err := o.QueryTable("weather").Filter("location_name", response.Location_name).OrderBy("-id").Limit(1).One(db)
+
+	if err == orm.ErrNoRows {
+		logs.Info("Inserting new values")
+		db.LocationName = response.Location_name
+		db.Temperature = response.Temperature
+		db.Wind = response.Wind
+		db.Cloudiness = jresponse.Weather[0].Description
+		db.Pressure = response.Pressure
+		db.Humidity = response.Humidity
+		db.Lat = jresponse.Coord.Lat
+		db.Lon = jresponse.Coord.Lon
+		db.Sunrise = sunrise
+		db.Sunset = sunset
+		db.RequestedTime = rtime
+
+		_, err := o.Insert(db)
+		if err != nil {
+			return nil, err
+		}
+	} else if tmsp := tmsp.Add(5 * time.Hour); tmsp.Sub(db.Timestamp).Seconds() > 300 {
+		logs.Info("Inserting new values if timestamp is > 300")
+		newcol := new(models.Weather)
+		newcol.LocationName = response.Location_name
+		newcol.Temperature = response.Temperature
+		newcol.Wind = response.Wind
+		newcol.Cloudiness = jresponse.Weather[0].Description
+		newcol.Pressure = response.Pressure
+		newcol.Humidity = response.Humidity
+		newcol.Lat = jresponse.Coord.Lat
+		newcol.Lon = jresponse.Coord.Lon
+		newcol.Sunrise = sunrise
+		newcol.Sunset = sunset
+		newcol.RequestedTime = rtime
+
+		_, err := o.Insert(newcol)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		logs.Info("Returning values from db")
+		response.Location_name = db.LocationName
+		response.Temperature = db.Temperature
+		response.Wind = db.Wind
+		response.Cloudiness = db.Cloudiness
+		response.Pressure = fmt.Sprintf("%.0f hpa", jresponse.Main.Pressure)
+		response.Humidity = db.Humidity
+		response.Sunrise = fmt.Sprintf("%02d:%02d", db.Sunrise.Hour(), db.Sunrise.Minute())
+		response.Sunset = fmt.Sprintf("%02d:%02d", db.Sunset.Hour(), db.Sunset.Minute())
+		response.Geo_coordinates = fmt.Sprintf("%v", []float64{db.Lat, db.Lon})
+		response.Requested_time = fmt.Sprintf("%v", db.RequestedTime)
+		return response, nil
+	}
+	return nil, nil
 }
