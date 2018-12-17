@@ -243,7 +243,6 @@ func GetConfig(s string) string {
 }
 
 func Inserting(response Response, jresponse JsonResponse, sunrise, sunset, rtime time.Time) (interface{}, error) {
-	var tmsp = time.Now()
 	//Saving data
 	o := orm.NewOrm()
 	o.Using("default")
@@ -269,7 +268,8 @@ func Inserting(response Response, jresponse JsonResponse, sunrise, sunset, rtime
 		if err != nil {
 			return nil, err
 		}
-	} else if tmsp := tmsp.Add(5 * time.Hour); tmsp.Sub(db.Timestamp).Seconds() > 300 {
+
+	} else if time.Now().Sub(db.Timestamp).Seconds() > 300 {
 		logs.Info("Inserting new values if timestamp is > 300")
 		newcol := new(models.Weather)
 		newcol.LocationName = response.Location_name
