@@ -79,10 +79,11 @@ var (
 	response  Response
 	jresponse JsonResponse
 	notfound  NotFoundRespose
+	empty     Response
 )
 
 func GetResponse(city, country string) interface{} {
-	fmt.Println("Retrieving weather info")
+	logs.Info("Retrieving weather info")
 
 	//conf variables
 	weather := GetConfig("weather")
@@ -131,13 +132,14 @@ func GetResponse(city, country string) interface{} {
 
 	//Inserting into DB returns the response retrieve from db (in case they exist) to return to client
 	//Return err in case there is an error trying to insert in the db
-	r, err := Inserting(response, jresponse, sunrise, sunset, rtime)
-	if r == nil && err == nil {
-		return response
-	} else if r == nil && err != nil {
+	resp, err := Inserting(response, jresponse, sunrise, sunset, rtime)
+	if resp != empty && err == nil {
+		return resp
+	} else if resp == empty && err != nil {
 		return InsertError()
 	}
-	return r
+
+	return response
 }
 
 func CheckErrors(s string, e error) {
@@ -242,15 +244,18 @@ func GetConfig(s string) string {
 	return beego.AppConfig.String(s)
 }
 
-func Inserting(response Response, jresponse JsonResponse, sunrise, sunset, rtime time.Time) (interface{}, error) {
+func Inserting(response Response, jresponse JsonResponse, sunrise, sunset, rtime time.Time) (Response, error) {
+	logs.Info("Connecting with DB")
 	//Saving data
+
 	o := orm.NewOrm()
 	o.Using("default")
 
 	db := new(models.Weather)
-	err := o.QueryTable("weather").Filter("location_name", response.Location_name).OrderBy("-id").Limit(1).One(db)
+	queryseter := o.QueryTable("weather").Filter("location_name", response.Location_name).OrderBy("-id").Limit(1)
+	qerr := queryseter.One(db)
 
-	if err == orm.ErrNoRows {
+	if qerr == orm.ErrNoRows {
 		logs.Info("Inserting new values")
 		db.LocationName = response.Location_name
 		db.Temperature = response.Temperature
@@ -266,9 +271,8 @@ func Inserting(response Response, jresponse JsonResponse, sunrise, sunset, rtime
 
 		_, err := o.Insert(db)
 		if err != nil {
-			return nil, err
+			return Response{}, err
 		}
-
 	} else if time.Now().Sub(db.Timestamp).Seconds() > 300 {
 		logs.Info("Inserting new values if timestamp is > 300")
 		newcol := new(models.Weather)
@@ -286,7 +290,7 @@ func Inserting(response Response, jresponse JsonResponse, sunrise, sunset, rtime
 
 		_, err := o.Insert(newcol)
 		if err != nil {
-			return nil, err
+			return Response{}, err
 		}
 	} else {
 		logs.Info("Returning values from db")
@@ -300,7 +304,6 @@ func Inserting(response Response, jresponse JsonResponse, sunrise, sunset, rtime
 		response.Sunset = fmt.Sprintf("%02d:%02d", db.Sunset.Hour(), db.Sunset.Minute())
 		response.Geo_coordinates = fmt.Sprintf("%v", []float64{db.Lat, db.Lon})
 		response.Requested_time = fmt.Sprintf("%v", db.RequestedTime)
-		return response, nil
 	}
-	return nil, nil
+	return response, nil
 }

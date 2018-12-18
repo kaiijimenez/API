@@ -15,6 +15,9 @@ func init() {
 		beego.NSNamespace("/weather",
 			beego.NSInclude(&controllers.WeatherController{}),
 		),
+		beego.NSNamespace("/scheduler/weather",
+			beego.NSInclude(&controllers.ScheduleController{}),
+		),
 	)
 	beego.AddNamespace(ns)
 }

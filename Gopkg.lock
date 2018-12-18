@@ -46,6 +46,14 @@
   version = "v4.20"
 
 [[projects]]
+  digest = "1:ed615c5430ecabbb0fb7629a182da65ecee6523900ac1ac932520860878ffcad"
+  name = "github.com/robfig/cron"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "b41be1df696709bb6395fe435af20370037c0b4c"
+  version = "v1.1"
+
+[[projects]]
   digest = "1:cc1c574c9cb5e99b123888c12b828e2d19224ab6c2244bda34647f230bf33243"
   name = "github.com/smartystreets/assertions"
   packages = [
@@ -105,6 +113,7 @@
     "github.com/astaxie/beego/logs",
     "github.com/astaxie/beego/orm",
     "github.com/go-sql-driver/mysql",
+    "github.com/robfig/cron",
     "github.com/smartystreets/goconvey/convey",
   ]
   solver-name = "gps-cdcl"

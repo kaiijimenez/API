@@ -3,21 +3,24 @@ package main
 import (
 	"fmt"
 
-	_ "github.com/kaiijimenez/API/routers"
-
 	"github.com/astaxie/beego"
-	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
+	_ "github.com/kaiijimenez/API/routers"
+	_ "github.com/kaiijimenez/API/tasks"
 )
 
 func init() {
-	orm.Debug = true
+	if beego.BConfig.RunMode == "dev" {
+		orm.Debug = true
+	}
+
 	orm.RegisterDriver("mysql", orm.DRMySQL)
 	// "$USER:PASS@tcp($HOST:$PORT)/DBNAME",
 	orm.RegisterDataBase("default", "mysql", "root:root@tcp(weatherdb)/weatherapidb?charset=utf8")
 }
 
 func main() {
+
 	fmt.Println("Running!")
 
 	if beego.BConfig.RunMode == "dev" {
@@ -25,5 +28,5 @@ func main() {
 		beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
 	}
 	beego.Run()
-	logs.Info("App started")
+
 }
