@@ -10,7 +10,7 @@ import (
 	"github.com/kaiijimenez/API/models"
 )
 
-func Inserting(response structs.Response, jresponse structs.JsonResponse, sunrise, sunset, rtime time.Time) (structs.Response, error) {
+func Inserting(response structs.Response, jresponse *structs.JsonResponse, sunrise, sunset, rtime time.Time) (*structs.Response, error) {
 	logs.Info("Connecting with DB")
 	//Saving data
 
@@ -37,7 +37,7 @@ func Inserting(response structs.Response, jresponse structs.JsonResponse, sunris
 
 		_, err := o.Insert(db)
 		if err != nil {
-			return structs.Response{}, err
+			return nil, err
 		}
 	} else if time.Now().Sub(db.Timestamp).Seconds() > 300 {
 		logs.Info("Inserting new values if timestamp is > 300")
@@ -56,7 +56,7 @@ func Inserting(response structs.Response, jresponse structs.JsonResponse, sunris
 
 		_, err := o.Insert(newcol)
 		if err != nil {
-			return structs.Response{}, err
+			return nil, err
 		}
 	} else {
 		logs.Info("Returning values from db")
@@ -71,5 +71,5 @@ func Inserting(response structs.Response, jresponse structs.JsonResponse, sunris
 		response.Geo_coordinates = fmt.Sprintf("%v", []float64{db.Lat, db.Lon})
 		response.Requested_time = fmt.Sprintf("%v", db.RequestedTime)
 	}
-	return response, nil
+	return &response, nil
 }

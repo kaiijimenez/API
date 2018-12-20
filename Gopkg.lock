@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:3b81e90b96d89cfd683c80e3fa7c9f2dafda7d5420f6c1c5e0307884af5f6a39"
+  digest = "1:8781cdbca462691e8457470ce6497864db3fe57d344b4f995628c25eb93117b4"
   name = "github.com/astaxie/beego"
   packages = [
     ".",
@@ -12,6 +12,7 @@
     "grace",
     "httplib",
     "logs",
+    "migration",
     "orm",
     "session",
     "toolbox",
@@ -44,14 +45,6 @@
   pruneopts = "UT"
   revision = "b4936e06046bbecbb94cae9c18127ebe510a2cb9"
   version = "v4.20"
-
-[[projects]]
-  digest = "1:ed615c5430ecabbb0fb7629a182da65ecee6523900ac1ac932520860878ffcad"
-  name = "github.com/robfig/cron"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "b41be1df696709bb6395fe435af20370037c0b4c"
-  version = "v1.1"
 
 [[projects]]
   digest = "1:cc1c574c9cb5e99b123888c12b828e2d19224ab6c2244bda34647f230bf33243"
@@ -111,9 +104,10 @@
     "github.com/astaxie/beego/context/param",
     "github.com/astaxie/beego/httplib",
     "github.com/astaxie/beego/logs",
+    "github.com/astaxie/beego/migration",
     "github.com/astaxie/beego/orm",
+    "github.com/astaxie/beego/toolbox",
     "github.com/go-sql-driver/mysql",
-    "github.com/robfig/cron",
     "github.com/smartystreets/goconvey/convey",
   ]
   solver-name = "gps-cdcl"

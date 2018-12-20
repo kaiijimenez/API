@@ -10,10 +10,6 @@ import (
 )
 
 func init() {
-	if beego.BConfig.RunMode == "dev" {
-		orm.Debug = true
-	}
-
 	orm.RegisterDriver("mysql", orm.DRMySQL)
 	// "$USER:PASS@tcp($HOST:$PORT)/DBNAME",
 	orm.RegisterDataBase("default", "mysql", "root:root@tcp(weatherdb)/weatherapidb?charset=utf8")

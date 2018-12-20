@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -23,15 +22,18 @@ var (
 	response  structs.Response
 	jresponse structs.JsonResponse
 	notfound  structs.NotFoundRespose
-	empty     structs.Response
 )
 
 func GetResponse(city, country string) interface{} {
 	logs.Info("Retrieving weather info")
-
-	//Select from conf variable:
-	prov := beego.AppConfig.String("fileprovider")
+	//provider file or openapi config variables:
+	//weatherprovider and fileprovider
+	prov := beego.AppConfig.String("weatherprovider")
 	jresponse := GetJsonResponse(prov, city, country)
+
+	if jresponse == nil {
+		return EResponse()
+	}
 
 	//getting time
 	sunrise := time.Unix(jresponse.Sys.Sunrise, 0)
@@ -55,12 +57,13 @@ func GetResponse(city, country string) interface{} {
 	//Inserting into DB returns the response retrieve from db (in case they exist) to return to client
 	//Return err in case there is an error trying to insert in the db
 	resp, err := conn.Inserting(response, jresponse, sunrise, sunset, rtime)
-	if resp != empty && err == nil {
+	if resp != nil && err == nil {
 		return resp
-	} else if resp == empty && err != nil {
+	} else if resp == nil && err != nil {
 		return InsertError()
 	}
-
+	//time.Sleep(5 * time.Second)
+	logs.Info("Sending response to controller")
 	return response
 }
 
@@ -166,36 +169,22 @@ func GetConfig(s string) string {
 	return beego.AppConfig.String(s)
 }
 
-func SaveJsonFile(city, country string) {
-	//Saving data into file
-
-	str := GetData(city, country)
-
-	filename := fmt.Sprintf("%s_%s.json", strings.ToLower(city), strings.ToLower(country))
-	path := filepath.Join("files/", filename)
-	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0666)
-
-	err = json.Unmarshal([]byte(str), &jresponse)
-	CheckErrors("Error trying to unmarshal the data: ", err)
-
-	jsonfile, _ := json.Marshal(jresponse)
-	_, err = f.Write(jsonfile)
-	CheckErrors("Error trying to write into a file", err)
-}
-
-func ReadJsonFile(city, country string) structs.JsonResponse {
+func ReadJsonFile(city, country string) *structs.JsonResponse {
 	//Reading data from file
 	filename := fmt.Sprintf("%s_%s.json", strings.ToLower(city), strings.ToLower(country))
 	path := filepath.Join("files/", filename)
 
 	readfile, err := ioutil.ReadFile(path)
-	CheckErrors("Error trying to read the file", err)
+	if err != nil {
+		CheckErrors("Error trying to read the file", err)
+		return nil
+	}
 	er := json.Unmarshal(readfile, &jresponse)
 	if er != nil {
 		CheckErrors("Error trying to unmarshal the data from file: ", er)
-		return structs.JsonResponse{}
+		return nil
 	}
-	return jresponse
+	return &jresponse
 }
 
 func GetData(city, country string) string {
@@ -206,22 +195,22 @@ func GetData(city, country string) string {
 	res := httplib.Get(uri)
 	str, e := res.String()
 	CheckErrors("Error in the raw response: ", e)
-	er := json.Unmarshal([]byte(str), &notfound)
-	if notfound.Code != "" {
-		CheckErrors("Error trying to unmarshal the data: ", er)
-		return ""
-	}
 	return str
 }
 
-func GetJsonResponse(prov, city, country string) structs.JsonResponse {
+func GetJsonResponse(prov, city, country string) *structs.JsonResponse {
 	if prov == "api.openweathermap.org" {
 		//Getting data from Endpoint:
 		str := GetData(city, country)
-		er := json.Unmarshal([]byte(str), &jresponse)
-		CheckErrors("Error trying to unmarshal the data from file: ", er)
-		return jresponse
+		err := json.Unmarshal([]byte(str), &notfound)
+		if err != nil {
+			er := json.Unmarshal([]byte(str), &jresponse)
+			CheckErrors("Error trying to unmarshall from endpoint: ", er)
+			return &jresponse
+		}
+		return nil
 	}
-	SaveJsonFile(city, country)
+	//SaveJsonFile(city, country)
+	//Get data from File
 	return ReadJsonFile(city, country)
 }

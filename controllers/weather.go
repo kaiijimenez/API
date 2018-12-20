@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"github.com/kaiijimenez/API/libraries"
-
 	"github.com/astaxie/beego/logs"
+
+	"github.com/kaiijimenez/API/libraries"
 
 	"github.com/astaxie/beego"
 )
@@ -22,12 +22,11 @@ type WeatherController struct {
 //@Accept json
 //@router /r [get]
 func (wc *WeatherController) Get() {
-
 	city := wc.GetString("city")
 	country := wc.GetString("country")
-
+	//worker pool
 	logs.Info("Getting the response from the endpoint")
-	response := libraries.GetResponse(city, country)
-	wc.Data["json"] = response
+	wc.Data["json"] = libraries.GetResponse(city, country)
 	wc.ServeJSON()
+
 }

@@ -9,6 +9,7 @@ services:
     restart: always
     volumes:
       - ./:/go/src/github.com/kaiijimenez/API
+    working_dir: /go/src/github.com/kaiijimenez/API
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=weatherapidb
