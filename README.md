@@ -15,7 +15,9 @@ $dep init
 ```
 
 ## Database migration:
+```
 $docker exec -it weatherapi bee migrate -conn="root:root@tcp(weatherdb:3306)/weatherapidb"
+```
 
 ## Run tests:
 Unit test and connection to DB 
