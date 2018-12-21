@@ -1,6 +1,6 @@
 # API
 
-#Version 4 (Final Version) 
+#Version 5 (Final Version) Completed
 Second provider (from files)
 They can be choose by two different configuration variables:
     prov := beego.AppConfig.String("weatherprovider") or prov := beego.AppConfig.String("fileprovider")
@@ -31,6 +31,5 @@ localhost:8080/swagger/
 
 
 #ERRORS
-Had an issue with version 5 (worker pool) everytime that it was running accepted only one connection with the pool and the channel used got closed so had an error trying to run the testcases and testing the endpoints without exited the application. 
-Will try to fin a solution even if it is out of time.
+Issue resolved. 
 

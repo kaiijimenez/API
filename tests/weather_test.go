@@ -32,7 +32,7 @@ func init() {
 // TestGet is a sample to run an endpoint test
 func TestWeatherApiSuccess(t *testing.T) {
 	var r structs.Response
-	valid := fmt.Sprintf(beego.AppConfig.String("localhost"), "Mexico", "mx")
+	valid := fmt.Sprintf(beego.AppConfig.String("localhost"), "Paris", "fr")
 
 	req, _ := http.NewRequest("GET", valid, nil)
 	w := httptest.NewRecorder()
@@ -99,13 +99,12 @@ func TestGetJsonResponse(t *testing.T) {
 	files := beego.AppConfig.String("fileprovider")
 	tables := []struct {
 		prov    string
-		success string
 		city    string
 		country string
 		mlogs   string
 	}{
-		{endapi, "yes", "mexico", "mx", "Getting response from endpoint"},
-		{files, "yes", "bogota", "co", "Getting response from file"},
+		{endapi, "bogota", "co", "Getting response from endpoint"},
+		{files, "mexico", "mx", "Getting response from file"},
 	}
 	for _, table := range tables {
 		jres := libraries.GetJsonResponse(table.prov, table.city, table.country)

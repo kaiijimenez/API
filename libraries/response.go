@@ -62,8 +62,7 @@ func GetResponse(city, country string) interface{} {
 	} else if resp == nil && err != nil {
 		return InsertError()
 	}
-	//time.Sleep(5 * time.Second)
-	logs.Info("Sending response to controller")
+
 	return response
 }
 
