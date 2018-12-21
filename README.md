@@ -20,13 +20,13 @@ $docker exec -it weatherapi bee migrate -conn="root:root@tcp(weatherdb:3306)/wea
 ## Run tests:
 Unit test and connection to DB 
 ```
-go test github.com/kaiijimenez/API/... -v
+$go test github.com/kaiijimenez/API/... -v
 ```
 
 ## Running APP
 ```
-docker-compose up -d --build
-docker-compose up
+$docker-compose up -d --build
+$docker-compose up
 ```
 
 ## ENDPOINTS
