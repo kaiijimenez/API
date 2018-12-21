@@ -3,9 +3,9 @@
 ```
 Second provider (from files)
 They can be choose by two different configuration variables:
-*prov := beego.AppConfig.String("weatherprovider") or prov := beego.AppConfig.String("fileprovider")
+prov := beego.AppConfig.String("weatherprovider") or prov := beego.AppConfig.String("fileprovider")
 Added three files:
-*(mexico, mx), (bogota, co), (paris, fr) to get data from these
+(mexico, mx), (bogota, co), (paris, fr) to get data from these
 ```
 
 # Commands to use 
@@ -19,7 +19,7 @@ $docker exec -it weatherapi bee migrate -conn="root:root@tcp(weatherdb:3306)/wea
 
 # Run tests:
 Unit test and connection to DB 
-``````
+```
 go test github.com/kaiijimenez/API/... -v
 ```
 
@@ -36,9 +36,9 @@ docker-compose up
 ```
 
 # ENPOINT Swagger Docs
+```
 localhost:8080/swagger/
-
-
+```
 
 # ERRORS
 Issue resolved. 
