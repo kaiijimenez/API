@@ -30,8 +30,8 @@ docker-compose up
 ```
 
 ## ENDPOINTS
--[GET] localhost:8080/v1/weather/r?city=$City&country=$Country where country is a two code characters in lowercase and city as string
--[PUT] localhost:8080/v1/scheduler/weather/r?city=$City&country=$Country same as above
+- [GET] localhost:8080/v1/weather/r?city=$City&country=$Country where country is a two code characters in lowercase and city as string
+- [PUT] localhost:8080/v1/scheduler/weather/r?city=$City&country=$Country same as above
 
 
 ## ENPOINT Swagger Docs
