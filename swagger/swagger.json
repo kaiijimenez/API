@@ -9,6 +9,40 @@
     },
     "basePath": "/v1",
     "paths": {
+        "/scheduler/weather/r": {
+            "put": {
+                "tags": [
+                    "scheduler/weather"
+                ],
+                "description": "Persist city in the db",
+                "operationId": "ScheduleController.PUT Scheduler Perform a regular check (Every 1 hour) and persist it in the DB",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "city",
+                        "description": "name of the City Example: Bogota",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "country",
+                        "description": "Country is a country code of two characters in lowercase. Example: co",
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "{\"city\": city, \"country\":country}"
+                    }
+                }
+            }
+        },
         "/weather/r": {
             "get": {
                 "tags": [

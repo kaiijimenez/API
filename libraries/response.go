@@ -3,104 +3,37 @@ package libraries
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
+
 	"strings"
 	"time"
 
 	"github.com/astaxie/beego"
+	"github.com/kaiijimenez/API/libraries/conn"
+	"github.com/kaiijimenez/API/libraries/structs"
 
 	"github.com/astaxie/beego/httplib"
 	"github.com/astaxie/beego/logs"
+	_ "github.com/go-sql-driver/mysql"
 )
 
-type JsonResponse struct {
-	Coord   CoordStruct     `json:"coord"`
-	Weather []WeatherStruct `json:"weather"`
-	Main    MainStruct      `json:"main"`
-	Wind    WindStruct      `json:"wind"`
-	Sys     SysStruct       `json:"sys"`
-	Rtime   int64           `json:"dt"`
-	Name    string          `json:"name"`
-}
-
-type CoordStruct struct {
-	Lon float64 `json:"lon"`
-	Lat float64 `json:"lat"`
-}
-
-type WeatherStruct struct {
-	Description string `json:"description"`
-}
-
-type MainStruct struct {
-	Temperature float64 `json:"temp"`
-	Pressure    float64 `json:"pressure"`
-	Humidity    float64 `json:"humidity"`
-}
-
-type WindStruct struct {
-	Speed    float64 `json:"speed"`
-	Degrates float64 `json:"deg"`
-}
-
-type SysStruct struct {
-	Country string `json:"country"`
-	Sunrise int64  `json:"sunrise"`
-	Sunset  int64  `json:"sunset"`
-}
-
-type Response struct {
-	Location_name   string
-	Temperature     string
-	Wind            string
-	Cloudiness      string
-	Pressure        string
-	Humidity        string
-	Sunrise         string
-	Sunset          string
-	Geo_coordinates string
-	Requested_time  string
-}
-
-type ErrorResponse struct {
-	Code    string
-	Message string
-}
-
-type NotFoundRespose struct {
-	Code    string `json:"cod"`
-	Message string `json:"message"`
-}
+var (
+	response  structs.Response
+	jresponse structs.JsonResponse
+	notfound  structs.NotFoundRespose
+)
 
 func GetResponse(city, country string) interface{} {
-	var response Response
-	var jresponse JsonResponse
-	var notfound NotFoundRespose
+	logs.Info("Retrieving weather info")
+	//provider file or openapi config variables:
+	//weatherprovider and fileprovider
+	prov := beego.AppConfig.String("weatherprovider")
+	jresponse := GetJsonResponse(prov, city, country)
 
-	//conf variables
-	weather := GetConfig("weather")
-	base := GetConfig("base_url")
-	appid := GetConfig("appid")
-
-	//endpoint api
-	we := fmt.Sprintf(weather, city, country)
-	uri := fmt.Sprintf("%s%s%s", base, we, appid)
-
-	//getting uri
-	res := httplib.Get(uri)
-	str, e := res.String()
-	CheckErrors("Error in the raw response: ", e)
-
-	//verifies whether if the city or the country are not send and if city doesn't match the country
-	// and returns an errorResponse
-	er := json.Unmarshal([]byte(str), &notfound)
-	if notfound.Code != "" {
-		CheckErrors("Error trying to unmarshal the data: ", er)
+	if jresponse == nil {
 		return EResponse()
 	}
-
-	//if the response is success then can continue with the code
-	err := json.Unmarshal([]byte(str), &jresponse)
-	CheckErrors("Error trying to unmarshal the data: ", err)
 
 	//getting time
 	sunrise := time.Unix(jresponse.Sys.Sunrise, 0)
@@ -120,6 +53,15 @@ func GetResponse(city, country string) interface{} {
 	response.Sunset = fmt.Sprintf("%02d:%02d", sunset.Hour(), sunset.Minute())
 	response.Geo_coordinates = fmt.Sprintf("%v", []float64{jresponse.Coord.Lat, jresponse.Coord.Lon})
 	response.Requested_time = fmt.Sprintf("%v", rtime)
+
+	//Inserting into DB returns the response retrieve from db (in case they exist) to return to client
+	//Return err in case there is an error trying to insert in the db
+	resp, err := conn.Inserting(response, jresponse, sunrise, sunset, rtime)
+	if resp != nil && err == nil {
+		return resp
+	} else if resp == nil && err != nil {
+		return InsertError()
+	}
 	return response
 }
 
@@ -129,11 +71,20 @@ func CheckErrors(s string, e error) {
 	}
 }
 
-func EResponse() ErrorResponse {
-	var eresponse ErrorResponse
+func EResponse() structs.ErrorResponse {
+	var eresponse structs.ErrorResponse
 	logs.Critical("City or country not found or empty")
 	eresponse.Code = "404"
 	eresponse.Message = "City not found"
+	return eresponse
+}
+
+
+func InsertError() structs.ErrorResponse {
+	var eresponse structs.ErrorResponse
+	logs.Critical("Error trying to insert in DB")
+	eresponse.Code = "500"
+	eresponse.Message = "Error trying to insert in DB"
 	return eresponse
 }
 
@@ -215,4 +166,51 @@ var getTemperature = func(kelvin float64) string {
 
 func GetConfig(s string) string {
 	return beego.AppConfig.String(s)
+}
+
+
+func ReadJsonFile(city, country string) *structs.JsonResponse {
+	//Reading data from file
+	filename := fmt.Sprintf("%s_%s.json", strings.ToLower(city), strings.ToLower(country))
+	path := filepath.Join("files/", filename)
+
+	readfile, err := ioutil.ReadFile(path)
+	if err != nil {
+		CheckErrors("Error trying to read the file", err)
+		return nil
+	}
+	er := json.Unmarshal(readfile, &jresponse)
+	if er != nil {
+		CheckErrors("Error trying to unmarshal the data from file: ", er)
+		return nil
+	}
+	return &jresponse
+}
+
+func GetData(city, country string) string {
+	//getting uri
+	base := beego.AppConfig.String("base_url")
+	appid := beego.AppConfig.String("appid")
+	uri := fmt.Sprintf(base, city, country, appid)
+	res := httplib.Get(uri)
+	str, e := res.String()
+	CheckErrors("Error in the raw response: ", e)
+	return str
+}
+
+func GetJsonResponse(prov, city, country string) *structs.JsonResponse {
+	if prov == "api.openweathermap.org" {
+		//Getting data from Endpoint:
+		str := GetData(city, country)
+		err := json.Unmarshal([]byte(str), &notfound)
+		if err != nil {
+			er := json.Unmarshal([]byte(str), &jresponse)
+			CheckErrors("Error trying to unmarshall from endpoint: ", er)
+			return &jresponse
+		}
+		return nil
+	}
+	//SaveJsonFile(city, country)
+	//Get data from File
+	return ReadJsonFile(city, country)
 }

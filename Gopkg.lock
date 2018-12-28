@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:ec5431be0851d1eb9494275a3b3595ae300d2be49e7bc7fbb103cd3c85394130"
+  digest = "1:8781cdbca462691e8457470ce6497864db3fe57d344b4f995628c25eb93117b4"
   name = "github.com/astaxie/beego"
   packages = [
     ".",
@@ -12,6 +12,9 @@
     "grace",
     "httplib",
     "logs",
+    "migration",
+    "orm",
+
     "session",
     "toolbox",
     "utils",
@@ -21,6 +24,12 @@
   version = "v1.11.1"
 
 [[projects]]
+  digest = "1:ec6f9bf5e274c833c911923c9193867f3f18788c461f76f05f62bb1510e0ae65"
+  name = "github.com/go-sql-driver/mysql"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "72cd26f257d44c1114970e19afddcd812016007e"
+  version = "v1.4.1"
   branch = "master"
   digest = "1:f14d1b50e0075fb00177f12a96dd7addf93d1e2883c25befd17285b779549795"
   name = "github.com/gopherjs/gopherjs"
@@ -71,19 +80,12 @@
   revision = "c126467f60eb25f8f27e5a981f32a87e3965053f"
 
 [[projects]]
-  digest = "1:8029e9743749d4be5bc9f7d42ea1659471767860f0cdc34d37c3111bd308a295"
-  name = "golang.org/x/text"
-  packages = [
-    "internal/gen",
-    "internal/triegen",
-    "internal/ucd",
-    "transform",
-    "unicode/cldr",
-    "unicode/norm",
-  ]
+  digest = "1:c25289f43ac4a68d88b02245742347c94f1e108c534dda442188015ff80669b3"
+  name = "google.golang.org/appengine"
+  packages = ["cloudsql"]
   pruneopts = "UT"
-  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
-  version = "v0.3.0"
+  revision = "4a4468ece617fc8205e99368fa2200e9d1fad421"
+  version = "v1.3.0"
 
 [[projects]]
   digest = "1:342378ac4dcb378a5448dd723f0784ae519383532f5e70ade24132c4c8693202"
@@ -101,9 +103,11 @@
     "github.com/astaxie/beego/context/param",
     "github.com/astaxie/beego/httplib",
     "github.com/astaxie/beego/logs",
+    "github.com/astaxie/beego/migration",
+    "github.com/astaxie/beego/orm",
+    "github.com/astaxie/beego/toolbox",
+    "github.com/go-sql-driver/mysql",
     "github.com/smartystreets/goconvey/convey",
-    "golang.org/x/text/transform",
-    "golang.org/x/text/unicode/norm",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
