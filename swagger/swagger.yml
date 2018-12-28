@@ -6,6 +6,7 @@ info:
     email: karina.jimenez@globant.com
 basePath: /v1
 paths:
+
   /scheduler/weather/r:
     put:
       tags:
@@ -30,6 +31,7 @@ paths:
       responses:
         "202":
           description: '{"city": city, "country":country}'
+
   /weather/r:
     get:
       tags:

@@ -7,6 +7,7 @@ import (
 
 func init() {
 
+
     beego.GlobalControllerRouter["github.com/kaiijimenez/API/controllers:ScheduleController"] = append(beego.GlobalControllerRouter["github.com/kaiijimenez/API/controllers:ScheduleController"],
         beego.ControllerComments{
             Method: "Put",

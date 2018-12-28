@@ -8,7 +8,6 @@ import (
 	"github.com/astaxie/beego/logs"
 
 	"github.com/kaiijimenez/API/libraries"
-
 	"github.com/astaxie/beego"
 )
 
@@ -20,6 +19,7 @@ var (
 	wg         sync.WaitGroup
 	workernums = 5
 )
+
 
 //@Title Get Json Response
 //@Description Get the Response from the endpoint of weather api

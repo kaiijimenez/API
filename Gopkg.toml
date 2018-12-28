@@ -32,11 +32,10 @@
 [[constraint]]
   name = "github.com/go-sql-driver/mysql"
   version = "1.4.1"
-
-[[constraint]]
   name = "github.com/smartystreets/goconvey"
   version = "1.6.3"
 
 [prune]
   go-tests = true
   unused-packages = true
+

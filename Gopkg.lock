@@ -14,6 +14,7 @@
     "logs",
     "migration",
     "orm",
+
     "session",
     "toolbox",
     "utils",
@@ -29,8 +30,6 @@
   pruneopts = "UT"
   revision = "72cd26f257d44c1114970e19afddcd812016007e"
   version = "v1.4.1"
-
-[[projects]]
   branch = "master"
   digest = "1:f14d1b50e0075fb00177f12a96dd7addf93d1e2883c25befd17285b779549795"
   name = "github.com/gopherjs/gopherjs"

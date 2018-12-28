@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+
 	"strings"
 	"time"
 
 	"github.com/astaxie/beego"
-
 	"github.com/kaiijimenez/API/libraries/conn"
 	"github.com/kaiijimenez/API/libraries/structs"
 
@@ -62,7 +62,6 @@ func GetResponse(city, country string) interface{} {
 	} else if resp == nil && err != nil {
 		return InsertError()
 	}
-
 	return response
 }
 
@@ -79,6 +78,7 @@ func EResponse() structs.ErrorResponse {
 	eresponse.Message = "City not found"
 	return eresponse
 }
+
 
 func InsertError() structs.ErrorResponse {
 	var eresponse structs.ErrorResponse
@@ -167,6 +167,7 @@ var getTemperature = func(kelvin float64) string {
 func GetConfig(s string) string {
 	return beego.AppConfig.String(s)
 }
+
 
 func ReadJsonFile(city, country string) *structs.JsonResponse {
 	//Reading data from file

@@ -76,6 +76,7 @@ func TestWeatherApiErrors(t *testing.T) {
 		w := httptest.NewRecorder()
 		beego.BeeApp.Handlers.ServeHTTP(w, req)
 		err := json.Unmarshal([]byte(w.Body.String()), &e)
+
 		Convey(table.mlogs, t, func() {
 			Convey("Status should be 200", func() {
 				So(w.Code, ShouldEqual, 200)
@@ -92,6 +93,7 @@ func TestWeatherApiErrors(t *testing.T) {
 		})
 	}
 }
+
 
 //Unit testing of functions in libraries file
 func TestGetJsonResponse(t *testing.T) {
@@ -124,3 +126,4 @@ func TestReadJsonFile(t *testing.T) {
 		})
 	})
 }
+
